@@ -15,14 +15,17 @@ function Projectile:initialize()
 end
 
 function Projectile:shoot(x, y, dir)
-local shot = {}
+  local shot = {}
   shot.dir = dir
   shot.x = x + 95
   shot.y = y + 150
   table.insert(shots, shot)
   start = 1
-  end
+end
 
+function Projectile:clean()
+  for k,v in pairs(shots) do shots[k]=nil end
+end
 
 function Projectile:update(dt)
   if start == 1 then
@@ -34,9 +37,7 @@ function Projectile:update(dt)
       v.x = v.x - ax
       v.y = v.y - ay
 
-      if v.x > WINDOW_WIDTH then --Check if out of screen, then remove..
-        table.insert(remShot, i)
-      elseif v.y < 0 then
+      if (v.x > WINDOW_WIDTH) or (v.x < 0) or (v.y < 0) or (v.y > WINDOW_HEIGHT) then --Check if out of screen, then remove..
         table.insert(remShot, i)
       end
     end
