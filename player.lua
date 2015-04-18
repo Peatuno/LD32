@@ -1,7 +1,9 @@
 require 'libs/AnAL'
 require 'settings'
+require 'entities/projectile'
 
 local k = love.keyboard
+local m = love.mouse
 
 Player = class('Player')
 Player:include(Stateful)
@@ -16,7 +18,7 @@ function Player:initialize(x, y)
   self.height = 256
   self.idleimg = love.graphics.newImage("Assets/Sten_idle.png")
   self.runimg = love.graphics.newImage("Assets/Sten_run.png")
-  self.idleanim = newAnimation(self.idleimg, self.width, self.height, 0.1, 0)
+  self.idleanim = newAnimation(self.idleimg, self.width, self.height, 1.5, 0)
   self.runanim = newAnimation(self.runimg, self.width, self.height, 0.1, 0)
 
   self.anim = self.idleanim
@@ -25,6 +27,7 @@ function Player:initialize(x, y)
   self.runPower = 250
   self.velocity = 0
   self.jump_height = 300
+  self.shooting = 0
 end
 
 function Player:update(dt, gravity)
@@ -39,6 +42,15 @@ function Player:update(dt, gravity)
   if k.isDown(" ") and self.velocity == 0 then
     self.anim = self.idleanim
     self.velocity = self.jump_height
+  end
+  if m.isDown("l") and self.shooting == 0 then
+    local mousex, mousey = love.mouse.getPosition()
+    local dir = math.atan2(self.y+150-mousey,self.x+95-mousex)
+    Projectile:shoot(self.x, self.y, dir)
+    self.shooting = 1
+  end
+  if not m.isDown("l") and self.shooting == 1 then
+    self.shooting = 0
   end
 
 
