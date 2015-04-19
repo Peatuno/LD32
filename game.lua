@@ -2,16 +2,17 @@ HC       = require 'libs/hardoncollider'
 class    = require 'libs/middleclass'
 Stateful = require 'libs/stateful'
 require 'settings'
+require 'utils'
 require 'player'
 require 'entities/kyl'
 require 'entities/troll'
+require 'entities/coins'
+require 'waves'
 
 local k = love.keyboard
 local g = love.graphics
 
 Game = class('Game')
-
-function math.dist(x1,y1, x2,y2) return ((x2-x1)^2+(y2-y1)^2)^0.5 end
 
 function Game:initialize()
   --Inside shop gfx
@@ -30,10 +31,8 @@ function Game:initialize()
   player = Player:new(200, BORDER_Y)
   kyl = Kyl:new(950, 333)
 
-  --Move till egen class sen..
-  enemys = {}
-  enemys[1] = Troll:new(1000, 433)
-  enemys[2] = Troll:new(820, 452)
+  coins = Coins:new()
+  troll = Troll:new()
 
   love.mouse.setVisible(false)
 
@@ -43,6 +42,7 @@ function Game:initialize()
 
   stage = "start"
   morestages = true
+  waves = Waves:new()
 
   ShowShopText = false
   ShopToggle = false
@@ -64,7 +64,7 @@ function Game:update(dt)
       ShowShopText = false
     end
 
-    if k.isDown("e") and ShowShopText == true then
+    if k.isDown("e") and ShowShopText == true then --Shop gui thing..
       if ShopToggle == false then
         ShopToggle = true
         ShowShopText = false
@@ -72,11 +72,19 @@ function Game:update(dt)
         local shopframe = loveframes.Create("frame")
         shopframe:SetName("Shop"):SetPos(500, 200)
         local button1 = loveframes.Create("button", shopframe)
-        button1:SetText("Energydrink (+50 energy) - Cost: 100$"):SetWidth(260):Center()
+        button1:SetText("Steroids (+5 damage) - Cost: 150$"):SetWidth(260):SetPos(20, 40)
         button1.OnClick = function()
-          if player.cashmoney > 100 then
-            player.cashmoney = player.cashmoney - 100
-            player.energy = player.energy + 50
+          if player.cashmoney > 150 then
+            player.cashmoney = player.cashmoney - 150
+            player.damage = player.damage + 5
+          end
+        end
+        local button2 = loveframes.Create("button", shopframe)
+        button2:SetText("Energydrink (+20 energy) - Cost: 50$"):SetWidth(260):SetPos(20, 70)
+        button2.OnClick = function()
+          if player.cashmoney > 50 then
+            player.cashmoney = player.cashmoney - 50
+            player.energy = player.energy + 20
           end
         end
         shopframe.OnClose = function(object)
@@ -84,22 +92,14 @@ function Game:update(dt)
           ShopToggle = false
         end
       end
-
-    elseif ShowShopText == false then
-      --hide shop-gui
-
     end
-
-
   elseif stage == "outside_night_1" then --IF outside, move enemys..
-    for i,v in ipairs(enemys) do
-      v.x = v.x - dt * 10
-    end
+    troll:update(dt)
+    coins:update(dt)
+    waves:update(dt)
   end
-
   loveframes.update(dt)
 end
-
 function Game:draw()
   if stage == "start" then --Shop
     g.draw(bg)
@@ -114,15 +114,40 @@ function Game:draw()
     end
     g.setFont(defaultfont)
 
+    --Printa stats..
+    g.draw(statsbox, -50, 20)
+    --g.setFont(mainFont)
+    g.printf("HP: "..math.ceil(player.hp),50, 30, 200, "left")
+    g.printf("Energy: "..player.energy,50, 45, 500, "left")
+    g.printf("Damage: "..player.damage,50, 60, 500, "left")
+    g.printf("Cashmoney: "..player.cashmoney.." $",50, 85, 500, "left")
+    --g.setFont(defaultfont)
+    --crosshair
+    local mousex, mousey = love.mouse.getPosition()
+    g.draw(crosshair, mousex, mousey, 0, 1, 1, 12, 12)
   elseif stage == "outside_night_1" then --Outside 1
     g.draw(outsidebg)
-
-    for i,v in ipairs(enemys) do
-      g.draw(trollimg, v.x, v.y)
-    end
-
+    troll:draw()
+    coins:draw()
     g.setFont(mainFont)
-    g.printf("Outside (Fight)",550, 20, 200,"center")
+    g.printf("Outside",550, 20, 200,"center")
+    g.setFont(defaultfont)
+    waves:draw()
+
+    --Printa stats..
+    g.draw(statsbox, -50, 20)
+    --g.setFont(mainFont)
+    g.printf("HP: "..math.ceil(player.hp),50, 30, 200, "left")
+    g.printf("Energy: "..player.energy,50, 45, 500, "left")
+    g.printf("Damage: "..player.damage,50, 60, 500, "left")
+    g.printf("Cashmoney: "..player.cashmoney.." $",50, 85, 500, "left")
+    --g.setFont(defaultfont)
+    --crosshair
+    local mousex, mousey = love.mouse.getPosition()
+    g.draw(crosshair, mousex, mousey, 0, 1, 1, 12, 12)
+  elseif stage == "dead" then --Deadscreen..
+    g.setFont(deadFont)
+    g.printf("You died, but fear not! Because you can always restart the game, and be the best keyboard warrior in the whole world! And on that bombshell, thanks for playing!",100, 100, 900,"center")
     g.setFont(defaultfont)
 
   end
@@ -130,16 +155,7 @@ function Game:draw()
   player:draw()
   Projectile:draw()
 
-  --Printa stats..
-  g.draw(statsbox, -50, 20)
-  --g.setFont(mainFont)
-  g.printf("HP: "..player.hp,50, 40, 200, "left")
-  g.printf("Energy: "..player.energy,50, 55, 500, "left")
-  g.printf("Cashmoney: "..player.cashmoney.."$",50, 70, 500, "left")
-  --g.setFont(defaultfont)
-  --crosshair
-  local mousex, mousey = love.mouse.getPosition()
-  g.draw(crosshair, mousex, mousey, 0, 1, 1, 12, 12)
+
 
   loveframes.draw()
 

@@ -13,6 +13,7 @@ function love.load()
   love.window.setMode(WINDOW_WIDTH, WINDOW_HEIGHT, {resizable=false, vsync=false, minwidth=800, minheight=600})
 
   mainFont = love.graphics.newFont("Assets/8-BITWONDER.ttf", 24)
+  deadFont = love.graphics.newFont("Assets/Momstypewriter.ttf", 24)
   defaultfont = love.graphics.newFont(14)
   game = Game:new()
 end

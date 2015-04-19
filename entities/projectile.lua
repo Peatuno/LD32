@@ -14,11 +14,12 @@ function Projectile:initialize()
 
 end
 
-function Projectile:shoot(x, y, dir)
+function Projectile:shoot(x, y, dir, damage)
   local shot = {}
   shot.dir = dir
   shot.x = x + 95
   shot.y = y + 150
+  shot.damage = damage
   table.insert(shots, shot)
   start = 1
 end
