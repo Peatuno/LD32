@@ -12,7 +12,6 @@ function Player:initialize(x, y)
   --cords
   self.x = x
   self.y = y
-
   --gfx
   self.width = 128
   self.height = 256
@@ -23,13 +22,11 @@ function Player:initialize(x, y)
   self.runanim = newAnimation(self.runimg, self.width, self.height, 0.1, 0)
   self.deadanim = newAnimation(self.deadimg, self.width, self.height, 0.1, 0)
   self.deadanim:setMode("once")
-
   self.anim = self.idleanim
   --other things..
   self.velocity = 0
   self.shooting = 0
   self.look = "right"
-
   --stats
   self.hp = 100
   self.energy = 200
@@ -38,14 +35,12 @@ function Player:initialize(x, y)
   self.jump_height = 300
   self.damage = 5
 end
-
 function Player:update(dt, gravity)
   --Check if alive, first..
   if self.hp < 0 then
     stage = "dead"
     self.anim = self.deadanim
   else --Okey we are alive!
-
     local mouse_x, mouse_y = m.getPosition()
     if (mouse_x - 70 - self.x) < 0 then
       self.look = "left"
@@ -77,7 +72,11 @@ function Player:update(dt, gravity)
     if m.isDown("l") and self.shooting == 0 and ShopToggle == false and self.energy > 0 then --left mouse to shoot
       local mousex, mousey = love.mouse.getPosition()
       local dir = math.atan2(self.y+150-mousey,self.x+95-mousex)
-      Projectile:shoot(self.x, self.y, dir, self.damage)
+      if self.look == "right" then
+        Projectile:shoot(self.x, self.y, dir, self.damage)
+      elseif self.look == "left" then
+      Projectile:shoot(self.x-75, self.y, dir, self.damage)
+      end
       self.shooting = 1
       self.energy = self.energy - 1
     end
@@ -107,23 +106,17 @@ function Player:update(dt, gravity)
     end
     --Take damage of trollz
     for i,v in ipairs(trolls) do
-      if CheckCollision(self.x, self.y, self.width-40, self.height, v.x, v.y, 60, 128) then
+      if CheckCollision(self.x, self.y, self.width-40, self.height, v.x, v.y, 60, 128) and stage == "outside_night_1" then
         self.hp = self.hp - v.damage
       end
     end
-
   end
   self.anim:update(dt)
 end
-
-
 function Player:draw()
   if self.look == "right" then
     self.anim:draw(self.x, self.y)
   elseif self.look == "left" then
     self.anim:draw(self.x, self.y, 0, -1, 1, self.width)
   end
-  --love.graphics.draw(self.idle, self.x, self.y)
-
-  --love.graphics.print("Y: "..self.y, 30, 20)
 end

@@ -6,7 +6,6 @@ function Coins:initialize()
   self.goldcoin = love.graphics.newImage("Assets/coin_gold.png")
   self.goldcoinanim = newAnimation(self.goldcoin, 16, 16, 0.08, 0)
   self.goldcoinanim:setMode("bounce")
-
   self.dropdcoins = {}
 end
 function Coins:drop(x, y, type)
@@ -18,9 +17,7 @@ function Coins:drop(x, y, type)
   else
     coin.value = 1
   end
-
   table.insert(self.dropdcoins, coin)
-
 end
 function Coins:update(dt)
   local remCoins = {}
@@ -40,13 +37,10 @@ function Coins:update(dt)
   for i,v in ipairs(remCoins) do
     table.remove(self.dropdcoins, v)
   end
-
   self.goldcoinanim:update(dt)
 end
 function Coins:draw()
-  --if table.getn(self.dropdcoins) > 0 then
-    for i,v in ipairs(self.dropdcoins) do
-      self.goldcoinanim:draw(v.x, v.y)
-    end
-  --end
+  for i,v in ipairs(self.dropdcoins) do
+    self.goldcoinanim:draw(v.x, v.y)
+  end
 end

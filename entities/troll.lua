@@ -1,5 +1,4 @@
 require '../libs/AnAL'
---require 'entities/coins'
 
 Troll = class('Troll')
 
@@ -7,10 +6,9 @@ local g = love.graphics
 
 function Troll:initialize()
   trollimg = g.newImage("Assets/troll.png")
-  --self.anim = newAnimation(self.img, 64, 128, 0.8, 0)
   trolls = {}
 end
-function Troll:spawn(x, y, hp, speed)
+function Troll:spawn(x, y, hp, speed, drops)
   local troll = {}
   troll.x = x
   troll.y = y
@@ -18,7 +16,7 @@ function Troll:spawn(x, y, hp, speed)
   troll.speed = speed
   troll.damage = 0.01
   troll.look = "left"
-  --troll.animation = self.anim
+  troll.drops = drops
   table.insert(trolls, troll)
 end
 function Troll:update(dt)
@@ -29,11 +27,10 @@ function Troll:update(dt)
         --kanske någon animation att dom får ont :/
         k.hp = k.hp - v.damage
         table.insert(remShot, i)
-        if k.hp <= 0 then --död
-          coins:drop(k.x+20, k.y+128, "gold")
-          coins:drop(k.x+10, k.y+132, "gold")
-          coins:drop(k.x+5, k.y+100, "gold")
-          coins:drop(k.x+33, k.y+110, "gold")
+        if k.hp <= 1 then --död
+          for i=1,k.drops do
+            coins:drop(k.x+20+(i*4), k.y+128+(i*2), "gold")
+          end
           table.insert(remTroll, j)
         end
       end
@@ -57,12 +54,11 @@ function Troll:update(dt)
     v.x = v.x - ax
     v.y = v.y - ay
   end
-
 end
 function Troll:draw()
   for i,v in ipairs(trolls) do
     if v.look == "left" then
-      g.draw(trollimg, v.x, v.y)
+      g.draw(trollimg, v.x, v.y, 0)
     elseif v.look == "right" then
       g.draw(trollimg, v.x, v.y, 0, -1, 1, 64)
     end
